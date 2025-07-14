@@ -1049,7 +1049,7 @@
         email: email,
         phone: phone,
         creditScore: calculationData.creditScore || '',
-        remainingBalance: calculationData.remainingBalance ? calculationData.remainingBalance.toFixed(2) : '',
+        remainingBalance: calculationData.remainingBalance === 'number' ? calculationData.remainingBalance.toFixed(2) : '',
         currentROI: calculationData.currentROI || '',
         remainingTenure: calculationData.remainingTenure || '',
         khataType: calculationData.KHATAType || ''
