@@ -450,7 +450,7 @@
           <label>Enter amount in Lakhs (₹)</label>
           <input type="number" id="loanAmount" step="0.1" placeholder="e.g., 45.5" />
           <small>Original loan amount sanctioned by bank</small>
-          <span class="warning">⚠️ Enter only the lakh value (e.g., 45.5 for ₹45,50,000)</span>
+          <span class="warning" id="loanAmountWarning" style="display: none;">⚠️ Enter only the lakh value (e.g., 45.5 for ₹45,50,000)</span>
         </div>
         <div class="btns">
           <button class="btn btn-secondary" onclick="backStep(2)">Back</button>
@@ -747,6 +747,19 @@
       document.getElementById('userPhone').addEventListener('input', function(e) {
         this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
       });
+
+      // Loan amount warning
+      document.getElementById('loanAmount').addEventListener('input', function(e) {
+        const warning = document.getElementById('loanAmountWarning');
+        const value = this.value;
+        
+        // Show warning if user enters 4 or more digits
+        if (value.length >= 4 || parseFloat(value) >= 1000) {
+          warning.style.display = 'block';
+        } else {
+          warning.style.display = 'none';
+        }
+      });
     }
 
     function updateProgress(step) {
@@ -770,8 +783,8 @@
           showError('Please enter a valid loan amount');
           return;
         }
-        // Check if user entered full amount instead of lakhs
-        if (loanAmount > 500) {
+        // Check if user entered full amount instead of lakhs (more than 999)
+        if (parseFloat(loanAmount) > 999) {
           showError('Please enter amount in Lakhs only (e.g., 45.5 for ₹45,50,000)');
           return;
         }
@@ -791,9 +804,13 @@
         }
       }
       if (current === 5) {
-        const remainingTenure = document.getElementById('remainingTenure').value;
-        const totalTenure = document.getElementById('totalTenure').value;
-        if (!remainingTenure || remainingTenure <= 0 || remainingTenure > totalTenure) {
+        const remainingTenure = parseFloat(document.getElementById('remainingTenure').value);
+        const totalTenure = parseFloat(document.getElementById('totalTenure').value);
+        if (!remainingTenure || remainingTenure <= 0) {
+          showError('Please enter a valid remaining tenure');
+          return;
+        }
+        if (remainingTenure > totalTenure) {
           showError('Remaining tenure cannot be more than total tenure');
           return;
         }
@@ -817,6 +834,11 @@
       document.getElementById(`step${current}`).classList.remove('active');
       document.getElementById(`step${current - 1}`).classList.add('active');
       updateProgress(current - 1);
+      
+      // Hide loan amount warning when going back to step 2
+      if (current === 3) {
+        document.getElementById('loanAmountWarning').style.display = 'none';
+      }
     }
 
     function calculateEMI(principal, rate, months) {
@@ -1027,18 +1049,11 @@
         email: email,
         phone: phone,
         creditScore: calculationData.creditScore || '',
-        totalLoanAmount: calculationData.totalLoanAmount || '',
-        currentROI: calculationData.currentROI || '',
-        totalTenure: calculationData.totalTenure || '',
-        remainingTenure: calculationData.remainingTenure || '',
         remainingBalance: calculationData.remainingBalance ? calculationData.remainingBalance.toFixed(2) : '',
-        khataType: calculationData.KHATAType || '',
-        bankCategory: calculationData.bankCategory || '',
-        bestBank: calculationData.bestBank || '',
-        bestROI: calculationData.bestROI || '',
-        monthlySavings: calculationData.monthlySavings ? Math.round(calculationData.monthlySavings) : '',
-        totalSavings: calculationData.totalSavings ? Math.round(calculationData.totalSavings) : ''
-      };
+        currentROI: calculationData.currentROI || '',
+        remainingTenure: calculationData.remainingTenure || '',
+        khataType: calculationData.KHATAType || ''
+             };
 
       // Show loading
       document.getElementById('loader').style.display = 'block';
@@ -1100,6 +1115,9 @@
       document.getElementById('userName').value = '';
       document.getElementById('userEmail').value = '';
       document.getElementById('userPhone').value = '';
+      
+      // Hide loan amount warning
+      document.getElementById('loanAmountWarning').style.display = 'none';
       
       // Remove selected classes
       document.querySelectorAll('.KHATA-option.selected').forEach(el => el.classList.remove('selected'));
